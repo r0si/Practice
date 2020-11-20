@@ -1,2 +1,2 @@
-# CourseDesign
-课程设计作业
+# Practice
+个人练习
