@@ -3,6 +3,7 @@
 import argparse
 import urllib.request
 import requests
+import random
 import lxml.html
 #from lxml import etree
 from bs4 import BeautifulSoup
@@ -64,6 +65,22 @@ def get_dog():
     td = soup.find_all('article')
     console.print(td[0].text, style="bold green")
 
+def get_ewisdom():
+    response = requests.get("https://en.wikiquote.org/wiki/Main_Page",proxies=proxies)
+    response.encoding = 'utf-8'
+    soup = BeautifulSoup(response.text, 'html.parser')
+    td = soup.find_all('td')
+    console.print(td[3].text, style="bold green")
+def get_proverb():
+    response = requests.get("https://zh.m.wikiquote.org/wiki/%E4%B8%AD%E6%96%87%E8%B0%9A%E8%AF%AD",proxies=proxies) 
+    response.encoding = 'utf-8'
+    #print(response.text)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    li = soup.find_all('li')
+    #print(type(li))
+    rand = random.randint(15,651)
+    console.print(li[rand].text, style="bold green")
+
 
 #wisdom()
 if __name__ == '__main__':
@@ -73,6 +90,8 @@ if __name__ == '__main__':
     parse.add_argument('-n', '--news', action='store_true', help='每日新闻')
     parse.add_argument('-his', '--history', action='store_true', help='历史上的今天')
     parse.add_argument('-d', '--dog', action='store_true', help='舔狗日记')
+    parse.add_argument('-ew', '--ewisdom', action='store_true', help='英文每日名言')
+    parse.add_argument('-p', '--proverb', action='store_true', help='中文谚语')
     args = parse.parse_args()
     if args.wisdom == True:
         get_wisdom()
@@ -84,3 +103,7 @@ if __name__ == '__main__':
         get_history()
     elif args.dog == True:
         get_dog()
+    elif args.ewisdom == True:
+        get_ewisdom()
+    elif args.proverb == True:
+        get_proverb()    
