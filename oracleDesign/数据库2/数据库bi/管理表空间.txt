@@ -1,0 +1,122 @@
+管理表空间
+
+
+1：基本表空间
+创建数据库时，系统自动创建一系列的表空间：system，sysaux，undo，user，temp等表空间，而用户需要根据需要创建自己的表空间，以减轻系统负担；
+ 创建表空间：基本语法
+
+  create [temporary|undo] Tablespace 表空间名
+   [datafile|tempfile '文件名' Size  大小k|m  [reuse]
+   [autoextend off|on
+    [next 扩展区大小k|m Maxsize 最大大小k|m]]
+
+
+例1：创建一个永久性表空间，myspace
+
+create tablespace bizongwang
+ datafile 'e:\bizongwang.dbf' size 20m
+  autoextend on next 5m 
+  maxsize 100m;
+
+
+创建后可以通过dba_tablespaces 查看表空间
+select tablespace_name,logging,allocation_type,extent_management
+ from dba_tablespaces;
+ select tablespace_name,logging,allocation_type,extent_management,segment_space_management from dba_tablespaces where tablespace_name='BIZONGWANG';
+
+表空间的状态：4种
+online：允许访问
+offline：不允许访问，对数据库进行基于时间的回复；
+read ONLY：处于online不能rollback，不能在线备份
+readwrite
+
+修改表空间为online：
+alter tablespace myspace online;
+alter tablespace myspace offline;
+
+重命名表空间：要求在线
+alter tablespace zyrspace rename to myspace;
+
+
+了解数据文件的信息,查看该空间还剩余多少
+select tablespace_name,bytes,blocks
+from dba_free_space
+where tablespace_name='BZW1111';
+
+要修改表空间的大小，就要修改对应的数据文件的大小，
+dba_data_files 查看数据文件
+的信息；
+select tablespace_name,file_name,bytes 
+from dba_data_files
+where tablespace_name='MYSPACE';
+
+
+修改数据文件大小
+alter database datafile 'e:\myspace.dbf' resize 20m;
+
+
+
+
+
+
+增加表空间的数据文件：
+alter tablespace zzzyr 
+add datafile 'e:\zzzyr1.dbf'  size 20m
+autoextend on next 5m maxsize 50m;
+
+删除表空间中的数据文件：
+alter tablespace zyr drop datafile 'E:\zyr1.DBF';
+
+修改表空间数据文件的状态：online，offline，offline drop
+alter database datafile 'E:\MYSPACE2.DBF' offline drop;
+
+
+无法删除本地管理的表空间中的脱机数据文件
+alter database datafile 'E:\MYSPACE2.DBF'  online;
+文件6需要介质恢复：
+
+recover datafile 6;
+
+完成介质恢复。
+alter database datafile 'E:\MYSPACE2.DBF' online;
+select file_name,status from dba_data_Files where tablespace_name='MYSPACE';
+alter tablespace myspace drop datafile 'E:\MYSPACE2.DBF';
+
+移动表空间数据文件：
+alter database datafile 'E:\MYSPACE2.DBF' offline;
+直接移动数据文件到目标地址；
+alter tablespace  myspace rename datafile 'E:\MYSPACE2.DBF' TO 'F:\MMYSPACE.DBF';
+ALTER TABLESPACE MYSPACE ONLINE;
+select tablespace_NAME, file_name,status from dba_data_Files where tablespace_name='MYSPACE';
+
+
+
+
+
+
+
+
+
+
+删除表空间：
+drop  tablespace  表空间名
+ [including contents [and datafiles]]
+ drop tablespace zzzyr including contents and datafiles;
+
+
+设置默认表空间：user，temp
+database_properties,可以查看当前用户使用的表空间
+select property_name,property_value,description
+from database_properties
+where property_name in ('default_permanent_tablespace','default_temp__tablespace');
+
+
+修改用户的默认表空间：
+alter database default[temporary] tablespace 表空间名；
+
+alter database default  tablespace myspace;
+
+
+
+
+

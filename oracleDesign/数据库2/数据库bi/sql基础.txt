@@ -1,0 +1,605 @@
+sqlplus 基础
+sql*plus可以执行3种命令：
+sqlplusw
+sql语句： ddl，dml，dcl
+plsql语句：过程，触发器，包等；
+sql*plus内部命令：格式化查询结果，环境设置，与db对话；
+
+进入sqlplus的三种方法：
+开始-〉运行-〉cmd ，输入：sqlplus，进入命令界面；
+开始-〉运行-〉cmd ，输入：sqlplusw，进入窗口界面；
+开始-〉程序-〉oracle-oradb10_ghome1-> Application  Development->SQL Plus
+输入，用户名：scott
+密码：oracle
+可以先试用命令：show user
+再连接其他用户：conn / as sysdba
+查询scott 用户下的表格emp
+select * from  scott.emp;
+
+
+一：设置环境参数：
+
+1: linesize 设置一行显示的字符数，1-32767
+set linesize n;
+
+
+2: pagesize 设置每一页的行数，
+set pagesize n;
+
+
+3:pause  当返回结果太多时，可用来滚动查询 enter
+set pause on;
+set pause off；
+
+
+4:feedback  在查询结果集的末尾，输出一行，指出返回的数据有多少行，默认为6
+set feedback {n |on |off}
+保存环境用store
+store set environment.cmd
+用@运行恢复保存的环境 
+
+
+二：查看类命令
+
+1：
+help 查询相关信息
+help [topic];
+help index;
+help reserve words; 查看保留字
+查看Scott用户模式下的表格结构以及数据：
+USER 为 "SCOTT"
+SQL> select * from tab;
+SQL> desc dept;
+SQL> select * from dept;
+
+2：
+describe 返回对所有存储对象的描述
+表，视图 ，列，列属性，输出过程函数程序包的范围；
+describe objectname；
+describe emp；
+3：show ：查看当前的sqlplus的系统变量；
+show all:查看所有的系统变量值的信息；
+show user：用户
+show sga：sga的大小
+show errors：详细的错误信息；
+show parameters:系统初始化参数信息；
+show release：查看版本信息
+
+4：host命令：可以从sqlplus环境切换到os环境；再用exit回到sqlplus环境；
+host notepad.EXE
+5： clear screen
+
+
+三：编辑类命令：
+sql语句一旦执行，就会保存在sql缓冲区；只能保存你最后执行的一条语句；
+
+
+编辑命令：只针对一条语句，如果要做报表或者是编程，还是用全屏编辑器，
+
+list n  列出缓冲区内容；
+     *为当前行， last 最后一行
+
+append text 向当前行追加内容
+    
+change 用新文本代替当前行文本
+change / 旧文本/新文本
+input text 在当前行后面添加文本
+del n  删除第n行
+save  将当前缓冲区的sql命令存入文件，默认路径：product\10.1.1\db_1\bin\
+save 文件名 replace/append  ，默认的文件.sql
+
+get   把文件装入缓冲区 ，与save相反，，get 文件名
+
+@ /Start 读取文件到缓冲区，并执行文件命令
+scott
+edit：全屏编辑器，用edit编辑缓冲区内容或文件内容
+edit 文件名； 
+spool：复制输出结果到文件，或把查询结果发送到处打印机，直到使用spool off为止；
+spool Scott.txt append
+/
+spool off
+
+prompt  在屏幕上输出一行数据，在脚本文件和用户间传递信息
+prompt prompttext；
+
+脚本script：常用的sql语句，pl/sql程序块，存储在安装目录下，bin文件夹下，.sql
+ 可以反复执行，用Start 和@ 来执行。
+@ c:\oracle \a.sql; 文件不在bin目录下，就用绝对路径；
+@ a.sql;    文件在bin目录下。
+
+缓冲区：存储用户最近之行过的命令，可以反复调用，编辑，修改
+方法：
+1 将缓冲区的内容传给记事本； define
+
+2使用默认的编辑器
+可以交互使用
+
+define_editor=Notepad;
+edit save;
+save  filename [replace| append]
+append text;
+del:删除当前行；
+del n:删除第n行；
+input ：插入；
+list ：列出缓冲区的行；
+change：替换；
+clearbuffer：删除缓冲区的命令行；
+run：显示并执行缓冲区的当前命令；
+
+四：格式化查询结果何创建简单报表
+这类命令包括：column，ttile，btile等；
+
+column [column_name |alias][option];
+
+clear:消除使用列的格式；
+clear columns:消除所有的列格式；
+format：改变列的数据显示格式；
+format格式
+    A n ：为可变长字符串的列设置宽度，超过会自动换行；
+    9：设置number列的显示格式，999 999
+    $:浮动的货币符号，$9，999.99
+    L:本地货币符号
+     .：小数点位置，999.99
+    ，：千位分隔符，9,999.99
+
+heading text：设置列标题为text；
+justify {left,center,right}对列标题设置输出对齐方式；
+null text：当列为空值时，显示的内容text；
+wrapped：换行；
+print：显示列标题；
+noprint：隐藏列标题
+
+例如：将Scott.emp 的empno设为“员工编号”，number的格式为：9999，
+hiredate列设为标题居中，sal的输出格式：$9,999.99
+
+column empno heading  员工编号  format 9999
+column ename heading  员工姓名 format A10
+column mgr heading 上级编号 format 9999
+column hiredate heading ‘雇用日期' justify center
+column sal heading 员工工资 format $9,999.999
+select empno,ename,mgr,hiredate,sal from emp;
+
+创建简单报表：特点：数据动态化，格式多样化，实现报表数据与格式的完全分离；
+1：ttile＆btitle
+ttile [printspec [text|variable]]|[on|off] 指定出现在报表中每一页顶端的页眉；
+btitle [printspec [text|variable]]|[on|off] 指定出现在报表中每一页底端的页脚；
+
+例题：查询emp表时，使用页眉页脚，放在一个文件report.sql中
+report.sql：
+
+ttitle left '日期：' _date  center  '张玉蓉执行Scott.emp报表'  right '页：' format 999 skip 2 sql.pno
+
+btitle center '计算机1175 15 花粉管！'
+
+set echo off
+set verify off
+set pagesize 40
+set linesize 120
+clear columns
+
+column empno heading '员工编号' format 9999
+column ename heading '员工姓名' format A10
+column mgr heading '上级编号' format 9999
+column hiredate heading '雇用日期' justify center
+column sal heading '员工工资' format $9,999.999
+
+select empno,ename,mgr,hiredate,sal from emp;
+
+clear columns
+ttitle off
+btitle off
+
+2:计算小计：在执行查询操作或创建报表时，可以使用break 和compute命令来对输出的结果进行统计计算；
+
+group by   sdept,sex  with cube/rollup
+
+统计总数 详情    order by  sno
+           compute count(cno),sum(score) by sno
+        
+
+break：可以让sqlplus根据列值的范围分隔输出结果，使重复的列值不显示；
+compute：可以计算一列的值，并在最后输出显示；
+例如：用break和compute命令将scott.emp表的输出结果根据deptno列进行分组，然后对每组的sal
+列进行求和计算；
+break on deptno
+compute sum of sal on deptno
+select empno,ename,mgr,sal,deptno from emp order by deptno;
+
+
+实验：创建报表，统计emp表中各部门的人数；
+ttitle left '日期：' _date  center  '***执行Scott.emp报表'  
+btitle left '谢谢您的使用！' center '页：' format 999 skip 2 sql.pno
+set echo off
+set verify off
+set pagesize 40
+set linesize 100
+clear columns
+column empno heading '员工编号' format 9999
+column ename heading '员工姓名' format A10
+column mgr heading '上级编号' format 9999
+column hiredate heading '雇用日期' justify center
+column sal heading '员工工资' format $999,999.00
+column deptno heading 部门编号 format 9999
+
+
+break on deptno
+compute count label '部门人数' of empno on deptno
+select empno,ename,mgr,sal,deptno from emp order by deptno;
+
+clear columns
+ttitle off
+btitle off
+
+
+
+
+创建数据库及表：
+usercreate.sql
+
+define schema=zyr
+define password=orcl
+define default_tablespace="users"
+define temp_tablespace="temp"
+
+drop user &schema cascade;
+
+
+
+create user &schema
+identified by & password
+default tablespace &&default_tablespace
+temporary tablespace &&temp_tablespace
+quota 200k on &&default_tablespace;
+ 
+grant connect ,reserve to &schame;
+grant create view create synonym to &schema;
+ 
+
+
+tables and datainsert.sql  建表及插入数据
+
+drop table students
+cascade constraints;
+
+create table student
+(sno number primary key,
+sname varchar2(20) not null,
+sex char(1),
+birthday date,
+email varchar2(50)
+);
+
+
+
+commit ;
+connect &schema/&password;
+
+
+
+
+SQL> show all --查看所有68个系统变量值 
+SQL> show user --显示当前连接用户 
+SQL> show error　　 --显示错误 
+SQL> set heading off --禁止输出列标题，默认值为ON 
+SQL> set feedback off --禁止显示最后一行的计数反馈信息，默认值为"对6个或更多的记录，回送ON" 
+SQL> set timing on --默认为OFF，设置查询耗时，可用来估计SQL语句的执行时间，测试性能 
+SQL> set sqlprompt "SQL> " --设置默认提示符，默认值就是"SQL> " 
+SQL> set linesize 1000 --设置屏幕显示行宽，默认100 
+SQL> set autocommit ON --设置是否自动提交，默认为OFF 
+SQL> set pause on --默认为OFF，设置暂停，会使屏幕显示停止，等待按下ENTER键，再显示下一页 
+SQL> set arraysize 1 --默认为15 
+SQL> set long 1000 --默认为80 
+说明： 
+long值默认为80，设置1000是为了显示更多的内容，因为很多数据字典视图中用到了long数据类型，如： 
+SQL> desc user_views 
+列名 可空值否 类型 
+------------------------------- -------- ---- 
+VIEW_NAME NOT NULL VARCHAR2(30) 
+TEXT_LENGTH NUMBER 
+TEXT LONG 
+SQL> define a = '''20000101 12:01:01''' --定义局部变量，如果想用一个类似在各种显示中所包括的回车那样的常量， 
+--可以用define命令来设置 
+SQL> select &a from dual; 
+原值 1: select &a from dual 
+新值 1: select '20000101 12:01:01' from dual 
+'2000010112:01:01 
+----------------- 
+20000101 12:01:01 
+问题提出： 
+1、用户需要对数据库用户下的每一张表都执行一个相同的SQL操作，这时，一遍、一遍的键入SQL语句是很麻烦的 
+实现方法： 
+SQL> set heading off --禁止输出列标题 
+SQL> set feedback off --禁止显示最后一行的计数反馈信息 
+列出当前用户下所有同义词的定义，可用来测试同义词的真实存在性 
+select 'desc '||tname from tab where tabtype='SYNONYM'; 
+查询当前用户下所有表的记录数 
+select 'select '''||tname||''',count(*) from '||tname||';' from tab where tabtype='TABLE'; 
+把所有符合条件的表的select权限授予为public 
+select 'grant select on '||table_name||' to public;' from user_tables where 《条件》; 
+删除用户下各种对象 
+select 'drop '||tabtype||' '||tname from tab; 
+删除符合条件用户 
+select 'drop user '||username||' cascade;' from all_users where user_id>25; 
+快速编译所有视图 
+----当在把数据库倒入到新的服务器上后(数据库重建)，需要将视图重新编译一遍， 
+----因为该表空间视图到其它表空间的表的连接会出现问题，可以利用PL/SQL的语言特性，快速编译。 
+SQL> SPOOL ON.SQL 
+SQL> SELECT'ALTER VIEW '||TNAME||' COMPILE;' FROM TAB; 
+SQL> SPOOL OFF 
+然后执行ON.SQL即可。 
+SQL> @ON.SQL 
+当然，授权和创建同义词也可以快速进行，如： 
+SQL> SELECT 'GRANT SELECT ON '||TNAME||' TO 用户名;' FROM TAB; 
+SQL> SELECT 'CREATE SYNONYM '||TNAME||' FOR 用户名.'||TNAME||';' FROM TAB; 
+命令列表： 
+假设当前执行命令为：select * from tab; 
+(a)ppend　　　　 添加文本到缓冲区当前行尾　　　　a order by tname　结果：select * from tab order by tname; 
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　（注：a后面跟2个空格） 
+(c)hange/old/new 在当前行用新的文本替换旧的文本　c/*/tname　　　　　结果：select tname from tab; 
+(c)hange/text　　从当前行删除文本　　　　　　　　c/tab　　　　　　　结果：select tname from ; 
+del　　　　　　　删除当前行 
+del n　　　　　　删除第n行 
+(i)nput 文本　　 在当前行之后添加一行 
+(l)ist　　　　　 显示缓冲区中所有行 
+(l)ist n　　　　 显示缓冲区中第 n 行 
+(l)ist m n　　　 显示缓冲区中 m 到 n 行 
+run　　　　　　　执行当前缓冲区的命令 
+/　　　　　　　　执行当前缓冲区的命令 
+r　　　　　　　　执行当前缓冲区的命令 
+@文件名　　　　　运行调入内存的sql文件，如： 
+SQL> edit s<回车> 
+如果当前目录下不存在s.sql文件，则系统自动生成s.sql文件， 
+在其中输入"select * from tab;"，存盘退出。 
+SQL> @s<回车> 
+系统会自动查询当前用户下的所有表、视图、同义词。 
+@@文件名　　　　 在.sql文件中调用令一个.sql文件时使用 
+save 文件名　　　将缓冲区的命令以文件方式存盘，缺省文件扩展名为.sql 
+get 文件名　　　 调入存盘的sql文件 
+start 文件名　　 运行调入内存的sql文件 
+spool 文件名　　 把这之后的各种操作及执行结果"假脱机"即存盘到磁盘文件上，默认文件扩展名为.lst 
+spool　　　　　　显示当前的"假脱机"状态 
+spool off　　　　停止输出 
+例： 
+SQL> spool a 
+SQL> spool 
+正假脱机到 A.LST 
+SQL> spool off 
+SQL> spool 
+当前无假脱机 
+exit　　　　　　 退出SQL*PLUS 
+desc 表名　　　　显示表的结构 
+show user　　　　显示当前连接用户 
+show error　　　 显示错误 
+show all　　　　 显示所有68个系统变量值 
+edit　　　　　　 打开默认编辑器，Windows系统中默认是notepad.exe，把缓冲区中最后一条SQL语句调入afiedt.buf文件中进行编辑 
+edit 文件名　　　把当前目录中指定的.sql文件调入编辑器进行编辑 
+clear screen　　 清空当前屏幕显示 
+二．Oracle sqlplus语句编辑命令 
+首先我们输入这样一条指令： 
+SELECT emp_id, emp_name 
+FROM Employees 
+input 命令可以接着上一条指令的后面添加语句，比如在上述语句运行后输入： 
+input WHERE emp_age > 30 
+便可得到如下指令： 
+SELECT emp_id, emp_name 
+FROM Employees 
+WHERE emp_age > 30 
+ln 命令用于指定对以输入的第n行语句进行操作，比如在上述语句运行后输入： 
+l1则当前选中的语句行即为 
+SELECT emp_id, emp_name 
+（语句前有"*"表示） 
+a 命令用于直接在当前行的末尾加上字符，比如在上述语句运行后输入： 
+a , emp_dept 
+则执行的指令变为： 
+SELECT emp_id, emp_name, emp_dept 
+FROM Employees 
+WHERE emp_age > 30 
+c 命令用于修改当前语句中的字符，比如在上述语句运行后输入： 
+c /emp_name/emp_age/则执行的指令变为： 
+SELECT emp_id, emp_age, emp_dept 
+FROM Employees 
+WHERE emp_age > 30 
+del n 命令用于删除第n行指令，比如在上述语句运行后输入： 
+DEL 3 
+则执行的指令变为： 
+SELECT emp_id, emp_age, emp_dept 
+FROM Employees 
+
+
+show和set命令是两条用于维护SQL*Plus系统变量的命令
+SQL> show all --查看所有68个系统变量值 
+SQL> show user --显示当前连接用户 
+SQL> show error　　 --显示错误 
+SQL> set heading off --禁止输出列标题，默认值为ON 
+SQL> set feedback off --禁止显示最后一行的计数反馈信息，默认值为"对6个或更多的记录，回送ON" 
+SQL> set timing on --默认为OFF，设置查询耗时，可用来估计SQL语句的执行时间，测试性能 
+SQL> set sqlprompt "SQL> " --设置默认提示符，默认值就是"SQL> " 
+SQL> set linesize 1000 --设置屏幕显示行宽，默认100 
+SQL> set autocommit ON --设置是否自动提交，默认为OFF 
+SQL> set pause on --默认为OFF，设置暂停，会使屏幕显示停止，等待按下ENTER键，再显示下一页 
+SQL> set arraysize 1 --默认为15 
+SQL> set long 1000 --默认为80 
+说明： 
+long值默认为80，设置1000是为了显示更多的内容，因为很多数据字典视图中用到了long数据类型，如： 
+SQL> desc user_views 
+列名 可空值否 类型 
+------------------------------- -------- ---- 
+VIEW_NAME NOT NULL VARCHAR2(30) 
+TEXT_LENGTH NUMBER 
+TEXT LONG 
+SQL> define a = '''20000101 12:01:01''' --定义局部变量，如果想用一个类似在各种显示中所包括的回车那样的常量， 
+--可以用define命令来设置 
+SQL> select &a from dual; 
+原值 1: select &a from dual 
+新值 1: select '20000101 12:01:01' from dual 
+'2000010112:01:01 
+----------------- 
+20000101 12:01:01 
+问题提出： 
+1、用户需要对数据库用户下的每一张表都执行一个相同的SQL操作，这时，一遍、一遍的键入SQL语句是很麻烦的 
+实现方法： 
+SQL> set heading off --禁止输出列标题 
+SQL> set feedback off --禁止显示最后一行的计数反馈信息 
+列出当前用户下所有同义词的定义，可用来测试同义词的真实存在性 
+select 'desc '||tname from tab where tabtype='SYNONYM'; 
+查询当前用户下所有表的记录数 
+select 'select '''||tname||''',count(*) from '||tname||';' from tab where tabtype='TABLE'; 
+把所有符合条件的表的select权限授予为public 
+select 'grant select on '||table_name||' to public;' from user_tables where 《条件》; 
+删除用户下各种对象 
+select 'drop '||tabtype||' '||tname from tab; 
+删除符合条件用户 
+select 'drop user '||username||' cascade;' from all_users where user_id>25; 
+快速编译所有视图 
+----当在把数据库倒入到新的服务器上后(数据库重建)，需要将视图重新编译一遍， 
+----因为该表空间视图到其它表空间的表的连接会出现问题，可以利用PL/SQL的语言特性，快速编译。 
+SQL> SPOOL ON.SQL 
+SQL> SELECT'ALTER VIEW '||TNAME||' COMPILE;' FROM TAB; 
+SQL> SPOOL OFF 
+然后执行ON.SQL即可。 
+SQL> @ON.SQL 
+当然，授权和创建同义词也可以快速进行，如： 
+SQL> SELECT 'GRANT SELECT ON '||TNAME||' TO 用户名;' FROM TAB; 
+SQL> SELECT 'CREATE SYNONYM '||TNAME||' FOR 用户名.'||TNAME||';' FROM TAB; 
+命令列表： 
+假设当前执行命令为：select * from tab; 
+(a)ppend　　　　 添加文本到缓冲区当前行尾　　　　a order by tname　结果：select * from tab order by tname; 
+　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　　（注：a后面跟2个空格） 
+(c)hange/old/new 在当前行用新的文本替换旧的文本　c/*/tname　　　　　结果：select tname from tab; 
+(c)hange/text　　从当前行删除文本　　　　　　　　c/tab　　　　　　　结果：select tname from ; 
+del　　　　　　　删除当前行 
+del n　　　　　　删除第n行 
+(i)nput 文本　　 在当前行之后添加一行 
+(l)ist　　　　　 显示缓冲区中所有行 
+(l)ist n　　　　 显示缓冲区中第 n 行 
+(l)ist m n　　　 显示缓冲区中 m 到 n 行 
+run　　　　　　　执行当前缓冲区的命令 
+/　　　　　　　　执行当前缓冲区的命令 
+r　　　　　　　　执行当前缓冲区的命令 
+@文件名　　　　　运行调入内存的sql文件，如： 
+SQL> edit s<回车> 
+如果当前目录下不存在s.sql文件，则系统自动生成s.sql文件， 
+在其中输入"select * from tab;"，存盘退出。 
+SQL> @s<回车> 
+系统会自动查询当前用户下的所有表、视图、同义词。 
+@@文件名　　　　 在.sql文件中调用令一个.sql文件时使用 
+save 文件名　　　将缓冲区的命令以文件方式存盘，缺省文件扩展名为.sql 
+get 文件名　　　 调入存盘的sql文件 
+start 文件名　　 运行调入内存的sql文件 
+spool 文件名　　 把这之后的各种操作及执行结果"假脱机"即存盘到磁盘文件上，默认文件扩展名为.lst 
+spool　　　　　　显示当前的"假脱机"状态 
+spool off　　　　停止输出 
+例： 
+SQL> spool a 
+SQL> spool 
+正假脱机到 A.LST 
+SQL> spool off 
+SQL> spool 
+当前无假脱机 
+exit　　　　　　 退出SQL*PLUS 
+desc 表名　　　　显示表的结构 
+show user　　　　显示当前连接用户 
+show error　　　 显示错误 
+show all　　　　 显示所有68个系统变量值 
+edit　　　　　　 打开默认编辑器，Windows系统中默认是notepad.exe，把缓冲区中最后一条SQL语句调入afiedt.buf文件中进行编辑 
+edit 文件名　　　把当前目录中指定的.sql文件调入编辑器进行编辑 
+clear screen　　 清空当前屏幕显示 
+二．Oracle sqlplus语句编辑命令 
+首先我们输入这样一条指令： 
+SELECT emp_id, emp_name 
+FROM Employees 
+input 命令可以接着上一条指令的后面添加语句，比如在上述语句运行后输入： 
+input WHERE emp_age > 30 
+便可得到如下指令： 
+SELECT emp_id, emp_name 
+FROM Employees 
+WHERE emp_age > 30 
+ln 命令用于指定对以输入的第n行语句进行操作，比如在上述语句运行后输入： 
+l1则当前选中的语句行即为 
+SELECT emp_id, emp_name 
+（语句前有"*"表示） 
+a 命令用于直接在当前行的末尾加上字符，比如在上述语句运行后输入： 
+a , emp_dept 
+则执行的指令变为： 
+SELECT emp_id, emp_name, emp_dept 
+FROM Employees 
+WHERE emp_age > 30 
+c 命令用于修改当前语句中的字符，比如在上述语句运行后输入： 
+c /emp_name/emp_age/则执行的指令变为： 
+SELECT emp_id, emp_age, emp_dept 
+FROM Employees 
+WHERE emp_age > 30 
+del n 命令用于删除第n行指令，比如在上述语句运行后输入： 
+DEL 3 
+则执行的指令变为： 
+SELECT emp_id, emp_age, emp_dept 
+FROM Employees 
+
+
+
+
+1.term命令：
+  当和SPOOL命令联合使用时，可以取消SQLPLUS输出，查询结果仅仅存在于假脱机文件中
+  set term on：查询结果既显示于假脱机文件中，又在SQLPLUS中显示；
+  set term off：查询结果仅仅显示于假脱机文件中。
+
+2.其他命令：
+
+SQL>set colsep'|';　　　 //-域输出分隔符
+
+SQL>set echo off;　　　 //显示start启动的脚本中的每个sql命令，缺省为on
+
+SQL> set echo on             //设置运行命令是是否显示语句
+
+SQL> set feedback on;       //设置显示“已选择XX行”
+
+SQL>set feedback off;　    //回显本次sql命令处理的记录条数，缺省为on
+
+SQL>set heading off;　　 //输出域标题，缺省为on
+
+SQL>set pagesize 0;　　    //输出每页行数，缺省为24,为了避免分页，可设定为0。
+
+SQL>set linesize 80;　　   //输出一行字符个数，缺省为80
+
+SQL>set numwidth 12;　    //输出number类型域长度，缺省为10
+
+SQL>set termout off;　　   //显示脚本中的命令的执行结果，缺省为on
+
+SQL>set trimout on;　　    //去除标准输出每行的拖尾空格，缺省为off
+
+SQL>set trimspool on;　   //去除重定向（spool）输出每行的拖尾空格，缺省为off
+
+SQL>set serveroutput on; //设置允许显示输出类似dbms_output
+
+SQL> set timing on;           //设置显示“已用时间：XXXX”
+
+SQL> set autotrace on;      //设置允许对执行的sql进行分析
+
+set verify off                       //可以关闭和打开提示确认信息old 1和new 1的显示.
+
+http://blog.csdn.net/ziyifengfei/article/details/9964161
+
+ 
+
+这是在用sqlplus运行查询时的一些设置。
+
+set echo off; #控制start命令不列出命令文件中的每一命令
+set feedback off; #显示由查询返回的记录数 off等价为0
+set heading off; #报表中列标题不打印
+set pagesize off; #置 从顶部标题至页结束之间的行数
+set linesize off; #置一行中显示的字符总数
+set termout off; #由文件执行命令时不显示输出
+set trimout on; #每一显示行的末端去掉空格
+set trimspool on; #去掉spool输出时每行末端空格
+
+col eventtypeid format A10; #字段eventtypeid 输出时的格式设置为文字型，且占10个字符宽度，下面类似
+col eventtime format A10;
+col srcip format A16;
+col dstip format A16;
+col srcport format A10;
+col dstport format A16;
+spool d:/home/oracle/http.txt; #将下面开始的输出记录到这个文件
+select eventtypeid, eventtime,srcip, srcport, dstip, dstport , param from netids_eventlog t; #查询语句
+spool off; #输出记录结束
+
+

@@ -71,7 +71,7 @@ def get_ewisdom():
     soup = BeautifulSoup(response.text, 'html.parser')
     td = soup.find_all('td')
     console.print(td[3].text, style="bold green")
-def get_proverb():
+def get_cproverb():
     response = requests.get("https://zh.m.wikiquote.org/wiki/%E4%B8%AD%E6%96%87%E8%B0%9A%E8%AF%AD",proxies=proxies) 
     response.encoding = 'utf-8'
     #print(response.text)
@@ -80,6 +80,16 @@ def get_proverb():
     #print(type(li))
     rand = random.randint(15,651)
     console.print(li[rand].text, style="bold green")
+def get_eproverb():
+    response = requests.get("https://zh.m.wikiquote.org/wiki/%E8%8B%B1%E8%AF%AD%E8%B0%9A%E8%AF%AD",proxies=proxies) 
+    response.encoding = 'utf-8'
+    #print(response.text)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    li = soup.find_all('li')
+    #print(type(li))
+    rand = random.randint(10,730)
+    console.print(li[rand].text, style="bold green")
+
 
 
 #wisdom()
@@ -91,7 +101,9 @@ if __name__ == '__main__':
     parse.add_argument('-his', '--history', action='store_true', help='历史上的今天')
     parse.add_argument('-d', '--dog', action='store_true', help='舔狗日记')
     parse.add_argument('-ew', '--ewisdom', action='store_true', help='英文每日名言')
-    parse.add_argument('-p', '--proverb', action='store_true', help='中文谚语')
+    parse.add_argument('-cp', '--cproverb', action='store_true', help='中文谚语')
+    parse.add_argument('-ep', '--eproverb', action='store_true', help='英语谚语')
+
     args = parse.parse_args()
     if args.wisdom == True:
         get_wisdom()
@@ -105,5 +117,7 @@ if __name__ == '__main__':
         get_dog()
     elif args.ewisdom == True:
         get_ewisdom()
-    elif args.proverb == True:
-        get_proverb()    
+    elif args.cproverb == True:
+        get_cproverb()
+    elif args.eproverb == True:
+        get_eproverb()
