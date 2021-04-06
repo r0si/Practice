@@ -1,5 +1,14 @@
 *bold*
 /gdgf/
 * sdfdsf
+** fdgdh
+* sfs
+ + sdf
+ + rtr
+
+
 ** sdfdfg
+
+E=mc^2
+
 
