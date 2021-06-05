@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import argparse
-import urllib.request
-import requests
 import random
+import urllib.request
+import os
 import lxml.html
+import requests
 #from lxml import etree
 from bs4 import BeautifulSoup
 from rich.console import Console
@@ -89,6 +90,14 @@ def get_eproverb():
     #print(type(li))
     rand = random.randint(10,730)
     console.print(li[rand].text, style="bold green")
+def get_word(word):
+    response = requests.get("https://www.zdic.net/hans/"+word)
+    response.encoding = 'utf-8'
+    soup = BeautifulSoup(response.text, 'html.parser')
+    div = soup.find_all('div')
+    text = div[44].text
+    text = os.linesep.join([s for s in text.splitlines() if s])
+    console.print(text, style="bold green")
 
 
 
@@ -103,7 +112,8 @@ if __name__ == '__main__':
     parse.add_argument('-ew', '--ewisdom', action='store_true', help='英文每日名言')
     parse.add_argument('-cp', '--cproverb', action='store_true', help='中文谚语')
     parse.add_argument('-ep', '--eproverb', action='store_true', help='英语谚语')
-
+    parse.add_argument('-wd','--words',action='store_true',help='查找汉字')
+    parse.add_argument('word',type=str,help="要查找的汉字")
     args = parse.parse_args()
     if args.wisdom == True:
         get_wisdom()
@@ -121,3 +131,5 @@ if __name__ == '__main__':
         get_cproverb()
     elif args.eproverb == True:
         get_eproverb()
+    elif args.words == True:
+        get_word(args.word)
