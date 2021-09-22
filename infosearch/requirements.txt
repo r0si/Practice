@@ -1,3 +1,6 @@
 argparse
 requests
 rich
+whois
+bs4
+shodan
