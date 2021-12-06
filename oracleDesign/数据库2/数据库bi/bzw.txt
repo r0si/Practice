@@ -1,3 +1,0 @@
-create tablespace bzw
-datafile 'd:/bzw.dbf' size 10m
-autoextend on next
